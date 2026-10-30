@@ -1,4 +1,4 @@
-# Android build for the Ember V11 source bundle
+# Native Android APK build
 name: Build Ember V11 Android APK
 on:
   push:
@@ -23,15 +23,13 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-      - name: Unpack Android project
-        run: unzip -q android-app/ember-android-source.zip -d android-app/build-src
       - name: Build debug APK
-        run: gradle -p android-app/build-src :app:assembleDebug --no-daemon --stacktrace
+        run: gradle -p android-app :app:assembleDebug --no-daemon --stacktrace
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: ember-v11-android-apk
-          path: android-app/build-src/app/build/outputs/apk/debug/app-debug.apk
+          path: android-app/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
       - name: Publish direct APK download
         uses: softprops/action-gh-release@v2
@@ -39,4 +37,4 @@ jobs:
           tag_name: ember-android-${{ github.run_number }}
           name: Ember V11 Android build ${{ github.run_number }}
           generate_release_notes: true
-          files: android-app/build-src/app/build/outputs/apk/debug/app-debug.apk
+          files: android-app/app/build/outputs/apk/debug/app-debug.apk
