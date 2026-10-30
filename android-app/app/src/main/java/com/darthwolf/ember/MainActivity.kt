@@ -197,7 +197,7 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
     }
 
     private fun field(h: String, value: String, secret: Boolean = false) = EditText(this).apply {
-        hint = h; setHintTextColor(muted); setTextColor(white); textSize = 13f; singleLine = true
+        hint = h; setHintTextColor(muted); setTextColor(white); textSize = 13f; setSingleLine(true)
         setPadding(dp(10), 0, dp(10), 0)
         background = android.graphics.drawable.GradientDrawable().apply { setColor(Color.rgb(2, 12, 23)); cornerRadius = dp(8).toFloat(); setStroke(dp(1), Color.rgb(19, 79, 108)) }
         if (secret) inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
