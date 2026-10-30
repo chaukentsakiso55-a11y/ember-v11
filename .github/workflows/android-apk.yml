@@ -1,10 +1,8 @@
+# Android build for the Ember V11 source bundle
 name: Build Ember V11 Android APK
 on:
   push:
     branches: [android-rebuild]
-    paths:
-      - 'android-app/ember-android-source.zip'
-      - '.github/workflows/android-apk.yml'
   workflow_dispatch:
 permissions:
   contents: write
