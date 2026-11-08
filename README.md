@@ -1,19 +1,20 @@
-# Ember V11 Android
+# Ember V12 Android
 
-Native Android companion for Ember V11 by Cyber Pulse.
+Native Android host for the Ember V12 interface supplied in the project brief.
 
 ## Build
-Push to `android-rebuild` or run the **Build Ember V11 Android APK** workflow manually. GitHub Actions builds a debug APK and publishes it as a release asset.
 
-## Install
-Download `app-debug.apk` from the latest GitHub release and install it on Android. Android may ask you to allow installs from the browser you used.
+Push to `android-rebuild` or run **Build Ember V11 Android APK** from GitHub Actions. The workflow builds a debug APK and uploads it as an Actions artifact.
 
-## Current scope
-- Native Compose chat interface with landscape-first layout and portrait support
-- OpenAI-compatible chat endpoint configuration
-- Speech recognition input and Android text-to-speech output
-- Custom Ember launcher icon
+## Architecture
 
-This is an Android foundation build, not complete feature parity with the Windows edition. Local model runtime, Gemini Live, plugins, avatar lip-sync, advanced file ingestion and long-term memory remain future work.
+- Kotlin Android activity hosts the original Ember interface in a full-screen WebView.
+- The original interface is stored at `app/src/main/assets/index.html`.
+- A JavaScript bridge provides Gemini requests, Android text-to-speech, microphone permission, device metrics, HTTPS link opening, clock timer/alarm intents, downloads and encrypted local key storage.
+- The Android activity starts in landscape orientation and supports portrait sensor rotation.
 
-API credentials are stored in app-private preferences in this foundation build. Do not use a shared device and do not treat this as hardware-backed encrypted secret storage.
+## Current limitations
+
+This is a native host foundation, not complete parity with every action exposed by the HTML interface. Cross-app typing, floating-window controls, always-on wake-word detection, Vosk model integration, USB serial ESP32 operations, scheduled reminders and app automation are not implemented yet. The UI must not report these as completed native capabilities.
+
+The Gemini key is stored using AndroidX EncryptedSharedPreferences backed by Android Keystore. Use a private device and protect the device lock screen.
