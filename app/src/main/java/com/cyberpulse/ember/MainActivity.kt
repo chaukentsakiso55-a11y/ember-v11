@@ -108,7 +108,6 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
         setContentView(web)
         if (savedInstanceState == null) web.loadUrl("file:///android_asset/index.html")
         else web.restoreState(savedInstanceState)
-        requestRuntimePermissions()
     }
 
     override fun onInit(status: Int) {
@@ -150,8 +149,13 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
     }
 
     inner class EmberBridge(private val activity: Activity, private val view: WebView) {
-        private fun reply(id: String, value: JSONObject) {
-            val js = "window.__emberCb && window.__emberCb(${JSONObject.quote(id)},${JSONObject.quote(value.toString())});"
+        private fun reply(id: String, value: Any) {
+            val payload = when (value) {
+                is JSONObject -> value.toString()
+                is String -> JSONObject.quote(value)
+                else -> JSONObject.quote(value.toString())
+            }
+            val js = "window.__emberCb && window.__emberCb(${JSONObject.quote(id)},$payload);"
             activity.runOnUiThread { view.evaluateJavascript(js, null) }
         }
 
@@ -193,7 +197,18 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
         @JavascriptInterface fun stopSpeak() { activity.runOnUiThread { if (::tts.isInitialized) tts.stop() } }
         @JavascriptInterface fun listen() { activity.runOnUiThread { view.evaluateJavascript("window.__listenRec && window.__listenRec()", null) } }
         @JavascriptInterface fun onConfig(json: String) { }
-        @JavascriptInterface fun requestPermission(kind: String) { activity.runOnUiThread { requestRuntimePermissions() } }
+        @JavascriptInterface fun requestPermission(kind: String) {
+            activity.runOnUiThread {
+                val requested = when (kind.lowercase()) {
+                    "camera" -> arrayOf(Manifest.permission.CAMERA)
+                    "notifications" -> if (android.os.Build.VERSION.SDK_INT >= 33) arrayOf(Manifest.permission.POST_NOTIFICATIONS) else emptyArray()
+                    "all" -> if (android.os.Build.VERSION.SDK_INT >= 33) arrayOf(Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA, Manifest.permission.POST_NOTIFICATIONS) else arrayOf(Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA)
+                    else -> arrayOf(Manifest.permission.RECORD_AUDIO)
+                }
+                val missing = requested.filter { ContextCompat.checkSelfPermission(activity, it) != PackageManager.PERMISSION_GRANTED }
+                if (missing.isNotEmpty()) ActivityCompat.requestPermissions(activity, missing.toTypedArray(), 4101)
+            }
+        }
 
         @JavascriptInterface
         fun permissionStatus(): String = JSONObject()
@@ -257,12 +272,12 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
                         else -> "This action is not implemented in the Android bridge yet: $type"
                     }
                 } catch (e: Exception) { "Action failed: ${e.message ?: "unknown error"}" }
-                reply(id, JSONObject().put("status", 1).put("body", result))
+                reply(id, result)
             }
         }
 
         @JavascriptInterface fun typeSecret(id: String, user: String, password: String, submit: Boolean) {
-            reply(id, JSONObject().put("status", 0).put("body", "Cross-app typing is disabled in this build."))
+            reply(id, "Cross-app typing is disabled in this build.")
         }
 
         @JavascriptInterface fun saveFile(name: String, content: String): String {
@@ -289,7 +304,7 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
         @JavascriptInterface fun loadSecret(): String = try { prefs.getString("gemini_key", "") ?: "" } catch (_: Exception) { "" }
 
         @JavascriptInterface fun espScan(): String = "[]"
-        @JavascriptInterface fun espConnect(id: String, device: Int) { reply(id, JSONObject().put("status", 0).put("body", "USB serial support is not enabled in this build.")) }
+        @JavascriptInterface fun espConnect(id: String, device: Int) { reply(id, "USB serial support is not enabled in this build.") }
         @JavascriptInterface fun espRun(id: String, code: String) { reply(id, JSONObject().put("status", 0).put("body", "USB serial support is not enabled in this build.")) }
         @JavascriptInterface fun espUpload(id: String, name: String, code: String, restart: Boolean) { reply(id, JSONObject().put("status", 0).put("body", "USB serial support is not enabled in this build.")) }
         @JavascriptInterface fun espStop() { }
