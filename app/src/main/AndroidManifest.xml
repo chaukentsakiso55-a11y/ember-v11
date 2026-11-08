@@ -9,6 +9,7 @@
     <application
         android:allowBackup="false"
         android:label="Ember"
+        android:icon="@drawable/ember_icon"
         android:theme="@android:style/Theme.Material.NoActionBar"
         android:usesCleartextTraffic="false">
         <activity
